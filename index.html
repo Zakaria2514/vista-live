@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vista Bank · Parcours client en direct</title>
+<style>
+:root{--red:#FC003B;--crim:#B02235;--ink:#F4EEF0;--mut:#B9A6AC;--dim:#7E6970;--bg:#0D090A;--card:#171012;--card2:#1F1518;--line:#2E2023;--ok:#3DDC97;--warn:#FFB547;--blue:#7CA7FF}
+*{margin:0;box-sizing:border-box}html,body{height:100%;background:var(--bg);overflow:hidden}
+body{font-family:"Cera Pro","Segoe UI","Helvetica Neue",Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+#stage{width:1920px;height:1080px;position:absolute;left:0;top:0;transform-origin:0 0;padding:18px 22px;display:grid;
+ grid-template-columns:1fr 1fr 1fr 470px;grid-template-rows:86px 112px 1fr 300px;gap:16px;
+ background:radial-gradient(1200px 600px at 30% 40%,rgba(176,34,53,.18),transparent 70%),radial-gradient(900px 500px at 85% 10%,rgba(252,0,59,.10),transparent 70%)}
+.card{background:linear-gradient(180deg,var(--card),#130D0F);border:1px solid var(--line);border-radius:14px;padding:18px 22px;position:relative;overflow:hidden}
+.kick{font-size:12.5px;letter-spacing:2.4px;text-transform:uppercase;color:var(--mut);font-weight:300}.kick b{color:#fff;font-weight:700}
+.src{position:absolute;right:18px;top:16px;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:99px;padding:3px 10px}
+.hdr{grid-column:1/5;display:flex;align-items:center;gap:26px;padding:0 6px}
+.hdr svg.logo{height:50px;width:auto}
+.ttl{font-size:30px;letter-spacing:1.5px;font-weight:300}.ttl b{font-weight:800}
+.sub{font-size:14px;color:var(--mut);margin-top:2px;letter-spacing:.5px}
+.hr{margin-left:auto;display:flex;align-items:center;gap:16px}
+.clock{text-align:right}.clock b{font-size:30px;font-weight:300;letter-spacing:1px;font-variant-numeric:tabular-nums}.clock span{display:block;font-size:11.5px;color:var(--mut);letter-spacing:1.5px;text-transform:uppercase}
+.pill{display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:99px;background:rgba(252,0,59,.12);border:1px solid rgba(252,0,59,.35);font-weight:700;letter-spacing:2px;font-size:13px;white-space:nowrap}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:pulse 2s infinite}
+.dot.sim{background:var(--warn)}.dot.off{background:#f87171;animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,151,.55)}70%{box-shadow:0 0 0 12px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+.mode{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}.mode button{background:transparent;color:var(--mut);border:0;padding:9px 16px;font:inherit;font-size:13px;letter-spacing:1px;cursor:pointer}
+.mode button.on{background:var(--red);color:#fff;font-weight:700}
+.kpis{grid-column:1/5;display:grid;grid-template-columns:repeat(7,1fr);gap:16px}
+.k{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.k:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--red),var(--crim))}
+.k span{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut)}
+.k b{display:block;font-size:42px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;transition:color .6s}
+.k em{position:absolute;right:16px;bottom:14px;font-style:normal;font-size:12px;color:var(--dim)}
+.flash{color:var(--red)!important}
+.journey{grid-column:1/4;grid-row:3/4;padding:16px 20px 10px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);margin-top:8px;font-size:12px;letter-spacing:2.2px;color:var(--dim);text-transform:uppercase}
+.cols div:nth-child(2),.cols div:nth-child(3){text-align:center}.cols div:nth-child(4){text-align:right}
+#sk{position:absolute;left:20px;top:46px;width:calc(100% - 40px);height:calc(100% - 58px)}
+.nl{font-size:15px;fill:#fff;font-weight:700;paint-order:stroke;stroke:#120c0e;stroke-width:5px;stroke-linejoin:round}.nv{font-size:13px;fill:#B9A6AC;paint-order:stroke;stroke:#120c0e;stroke-width:4px}.ch{font-size:12px;fill:#7E6970;letter-spacing:2.2px}
+.teams{grid-column:4/5;grid-row:3/4;display:grid;grid-template-rows:auto 1fr 1fr 1fr;gap:12px;padding:16px 18px}
+.tm{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:grid;grid-template-columns:1fr 98px;align-items:center;position:relative;overflow:hidden;transition:border-color .6s,box-shadow .6s}
+.tm h3{font-size:17px;letter-spacing:1px}.tm small{display:block;font-size:11.5px;color:var(--mut);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px}
+.tm .row{display:flex;gap:16px;margin-top:10px}.tm .row div{font-size:11.5px;color:var(--mut)}.tm .row b{display:block;font-size:24px;color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
+.tm .wait b{color:var(--red)}
+.ring{width:96px;height:96px;position:relative}.ring svg{transform:rotate(-90deg)}.ring div{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:22px;font-weight:800}
+.ring div small{display:block;font-size:9.5px;letter-spacing:1px;color:var(--mut);font-weight:400;margin-top:-2px}
+.tm.hot{border-color:rgba(252,0,59,.6);box-shadow:0 0 30px rgba(252,0,59,.18) inset}
+.last{grid-column:1/2;grid-row:4/5}
+.tl{margin-top:12px;position:relative;padding-left:22px;max-height:170px;overflow:hidden}
+.tl:before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.ev{position:relative;margin-bottom:9px;animation:in .5s ease both;font-size:14px;line-height:1.35}
+.ev:before{content:"";position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px var(--card)}
+.ev.b:before{background:var(--blue)}.ev.g:before{background:var(--ok)}.ev.y:before{background:var(--warn)}
+.ev .t{color:var(--dim);font-size:12px;margin-right:8px;font-variant-numeric:tabular-nums}
+.ev i{font-style:normal;font-size:11px;color:#fff;background:rgba(252,0,59,.18);border:1px solid rgba(252,0,59,.35);border-radius:99px;padding:1px 8px;margin-left:6px}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sum{margin-top:4px;background:rgba(124,167,255,.08);border-left:3px solid var(--blue);border-radius:6px;padding:7px 12px;font-size:12.5px;color:#dfe6ff;line-height:1.4;max-height:62px;overflow:hidden}
+.sum b{font-size:10.5px;letter-spacing:1.8px;color:var(--blue);display:block}
+.moments{grid-column:2/4;grid-row:4/5}
+.feed{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mo{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;display:flex;gap:12px;align-items:flex-start;animation:in .6s ease both}
+.mo .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;font-size:17px}
+.mo p{font-size:14px;line-height:1.3}.mo small{display:block;color:var(--dim);font-size:11.5px;margin-top:3px}
+.follow{grid-column:4/5;grid-row:4/5}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--crim),var(--red));transition:width 1s}
+.fl{margin-top:12px}.fl .r{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-top:9px}.fl .r b{color:#fff;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.chips span{font-size:11.5px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.chips span.on{border-color:rgba(61,220,151,.5);color:var(--ok)}
+.none{color:var(--dim);font-size:14px;margin-top:14px}
+#login{position:fixed;inset:0;display:none;place-items:center;background:rgba(13,9,10,.94);z-index:9}
+#login>div{text-align:center}#login h2{font-weight:300;letter-spacing:2px;margin:18px 0 6px}#login p{color:var(--mut);margin-bottom:22px}
+#login button{background:var(--red);color:#fff;border:0;border-radius:99px;padding:14px 28px;font:inherit;font-weight:700;letter-spacing:1px;cursor:pointer;margin:0 6px}
+#login button.alt{background:transparent;border:1px solid var(--line);color:var(--mut)}
+#login small{display:block;margin-top:14px;color:var(--dim)}
+</style></head><body>
+<div id="stage">
+ <div class="hdr">
+  <svg class="logo" viewBox="0 0 125 49"><g transform="translate(-135 -27)" fill="#fff"><path d="M254.45 51.12l5.55 5.45-19.06 18.68-19.05-18.68 5.55-5.45 13.5 13.24 13.5-13.24zm-13.5-13.23l13.5 13.23 5.55-5.44L240.94 27 221.9 45.68l5.55 5.44z"/><path d="M164.24 71.24c.8.43 1.33 1.26 1.33 2.22 0 1.4-1.16 2.53-2.58 2.53H158.63v-9.16h3.88a2.56 2.56 0 0 1 2.58 2.53c0 .75-.33 1.42-.85 1.88zm-4.5-.32h2.77c.87 0 1.58-.7 1.58-1.56 0-.85-.7-1.55-1.58-1.55h-2.76zm4.83 2.54c0-.86-.7-1.55-1.56-1.56h-3.26v3.11h3.24c.87 0 1.58-.7 1.58-1.55zm6-7.26l4.3 9.8h-1.18l-.81-1.86h-4.61l-.82 1.86h-1.17l4.1-9.33zm1.9 6.96l-1.9-4.5-1.89 4.5zm10.07-6.33h1.12V76h-.53l-5.88-6.9V76h-1.12v-9.17h.53l5.88 6.9zm3.08 0h1.11V76h-1.11zm7.3 9.17h-1.4l-4.79-4.58 4.38-4.6h1.43l-4.36 4.6z"/><path d="M199.68 40.62H185.5l-3.98 3.95h6.86v17.05H193V44.57h6.7zm-53.74 12.25l-5.87-12.24H135l10.94 21.8 11.02-21.8h-5.07zm65.54 8.76h5.07l-11.01-21.81-10.95 21.8h5.08l5.87-12.24zm-52.93 0h4.62v-21h-4.62zm23.7-6.34c0-3.27-2.34-4.62-4.46-5.23l-5.74-1.6c-1.5-.42-1.9-1.5-1.84-2.1.1-.9.61-1.75 3.26-1.75h4.5l4-3.95h-8.1c-1.42 0-8.34 0-8.22 6.33 0 3.27 2.33 4.62 4.45 5.23 0 0 4.2 1.18 5.75 1.6 1.5.42 1.9 1.5 1.84 2.1-.1.9-.61 1.75-3.26 1.75h-9v3.95h8.6c1.42 0 8.34 0 8.22-6.33z"/></g></svg>
+  <div><div class="ttl"><span>PARCOURS CLIENT</span> <b>EN DIRECT</b></div><div class="sub">Vista Bank Burkina · de l’appel à la résolution, chaque étape mesurée par Genesys Cloud</div></div>
+  <div class="hr">
+   <div class="mode"><button id="mLive" class="on">EN DIRECT</button><button id="mSim">SIMULATION</button></div>
+   <div class="pill"><span class="dot" id="dot"></span><span id="livet">EN DIRECT</span></div>
+   <div class="clock"><b id="clk">--:--</b><span>Ouagadougou · <span id="upd">…</span></span></div>
+  </div>
+ </div>
+ <div class="kpis">
+  <div class="k"><span>Contacts du jour</span><b id="k_tot">–</b><em id="k_tot_e"></em></div>
+  <div class="k"><span>Décrochés</span><b id="k_ans">–</b><em id="k_ans_e"></em></div>
+  <div class="k"><span>Attente moyenne</span><b id="k_wait">–</b><em>avant conseiller</em></div>
+  <div class="k"><span>Abandon</span><b id="k_ab">–</b><em id="k_ab_e"></em></div>
+  <div class="k"><span>Résolus sans attente</span><b id="k_self">–</b><em>SVI + assistant</em></div>
+  <div class="k"><span>Clients VIP servis</span><b id="k_vip">–</b><em>en priorité</em></div>
+  <div class="k"><span>Alertes KYC</span><b id="k_kyc">–</b><em>numéro différent</em></div>
+ </div>
+ <div class="card journey"><span class="src" id="sksrc">aujourd’hui · analytics Genesys</span><div class="kick">Le parcours de <b>chaque client</b>, en temps réel</div>
+    <svg id="sk"></svg></div>
+ <div class="card teams"><div class="kick">Les équipes <b>maintenant</b></div><div id="teams" style="display:contents"></div></div>
+ <div class="card last"><span class="src" id="lastsrc">dernier client</span><div class="kick">Le dernier client, <b>pas à pas</b></div><div class="tl" id="tl"></div><div id="sum"></div></div>
+ <div class="card moments"><div class="kick">Les moments <b>qui comptent</b></div><div class="feed" id="feed"></div></div>
+ <div class="card follow"><div class="kick">Suivi <b>&amp; conformité</b></div>
+  <div class="fl"><div class="r"><span>Campagne E-TELIA · confirmations RDV</span><b id="c_pct">–</b></div><div class="bar"><i id="c_bar" style="width:0"></i></div>
+   <div class="r"><span>Demandes de suivi ouvertes</span><b id="w_open">–</b></div>
+   <div class="r"><span>Demandes clôturées aujourd’hui</span><b id="w_done">–</b></div>
+   <div class="r"><span>Appels enregistrés</span><b>100 %</b></div></div>
+  <div class="chips"><span class="on">Copilot · résumé auto</span><span class="on">Codes de clôture IA</span><span class="on">Grille conformité</span><span class="on">Rappel sans perte de place</span><span>WhatsApp · bientôt</span></div></div>
+</div>
+<div id="login"><div><svg viewBox="0 0 125 49" width="180"><g transform="translate(-135 -27)" fill="#fff"><path d="M254.45 51.12l5.55 5.45-19.06 18.68-19.05-18.68 5.55-5.45 13.5 13.24 13.5-13.24zm-13.5-13.23l13.5 13.23 5.55-5.44L240.94 27 221.9 45.68l5.55 5.44z"/><path d="M164.24 71.24c.8.43 1.33 1.26 1.33 2.22 0 1.4-1.16 2.53-2.58 2.53H158.63v-9.16h3.88a2.56 2.56 0 0 1 2.58 2.53c0 .75-.33 1.42-.85 1.88zm-4.5-.32h2.77c.87 0 1.58-.7 1.58-1.56 0-.85-.7-1.55-1.58-1.55h-2.76zm4.83 2.54c0-.86-.7-1.55-1.56-1.56h-3.26v3.11h3.24c.87 0 1.58-.7 1.58-1.55zm6-7.26l4.3 9.8h-1.18l-.81-1.86h-4.61l-.82 1.86h-1.17l4.1-9.33zm1.9 6.96l-1.9-4.5-1.89 4.5zm10.07-6.33h1.12V76h-.53l-5.88-6.9V76h-1.12v-9.17h.53l5.88 6.9zm3.08 0h1.11V76h-1.11zm7.3 9.17h-1.4l-4.79-4.58 4.38-4.6h1.43l-4.36 4.6z"/><path d="M199.68 40.62H185.5l-3.98 3.95h6.86v17.05H193V44.57h6.7zm-53.74 12.25l-5.87-12.24H135l10.94 21.8 11.02-21.8h-5.07zm65.54 8.76h5.07l-11.01-21.81-10.95 21.8h5.08l5.87-12.24zm-52.93 0h4.62v-21h-4.62zm23.7-6.34c0-3.27-2.34-4.62-4.46-5.23l-5.74-1.6c-1.5-.42-1.9-1.5-1.84-2.1.1-.9.61-1.75 3.26-1.75h4.5l4-3.95h-8.1c-1.42 0-8.34 0-8.22 6.33 0 3.27 2.33 4.62 4.45 5.23 0 0 4.2 1.18 5.75 1.6 1.5.42 1.9 1.5 1.84 2.1-.1.9-.61 1.75-3.26 1.75h-9v3.95h8.6c1.42 0 8.34 0 8.22-6.33z"/></g></svg>
+ <h2>PARCOURS CLIENT EN DIRECT</h2><p>Connectez-vous avec votre compte Genesys Cloud pour afficher les données en direct.</p>
+ <button id="lgbtn">Se connecter à Genesys Cloud</button><button id="lgsim" class="alt">Mode simulation</button><small id="lgmsg"></small></div></div>
+<script>
+"use strict";
+const CFG={region:"mypurecloud.ie",clientId:"%%CLIENT_ID%%",queues:["CRC SOCRE","CEM Monétique","E-TELIA"],
+ teamLbl:{"CRC SOCRE":"Service client","CEM Monétique":"Cartes · Monétique","E-TELIA":"Rendez-vous & campagnes"},
+ flows:["VB - Vista Bank - SVI","VB - Vista Bank - Attente","Message Flow 2","VB - Vista Bank - Assistant","VB - Vista Bank Group - Email"],
+ campaign:"VB - E-TELIA - Confirmation RDV",workbin:"9bdaa0cb-9947-4148-a6d0-a95960b5f6da"};
+if(CFG.clientId.indexOf("%%")===0)CFG.clientId="";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080),st=$("stage");st.style.transform=`scale(${s})`;st.style.left=((innerWidth-1920*s)/2)+"px";st.style.top=((innerHeight-1080*s)/2)+"px"}
+addEventListener("resize",fit);fit();
+setInterval(()=>{$("clk").textContent=new Date().toISOString().substr(11,8)},1000);
+/* ---------- auth: implicit grant with the viewer's own Genesys account; no secret in this page ---------- */
+const qp=new URLSearchParams(location.search);CFG.clientId=qp.get("client")||CFG.clientId;
+function tokRead(){const h=new URLSearchParams(location.hash.slice(1));
+ if(h.get("access_token")){const t={v:h.get("access_token"),exp:Date.now()+(+h.get("expires_in")||3600)*1000};try{localStorage.setItem("vb_tok",JSON.stringify(t))}catch(e){}
+  history.replaceState(null,"",location.pathname+location.search);if(qp.get("popup")){setTimeout(()=>window.close(),300)}return t.v}
+ try{const t=JSON.parse(localStorage.getItem("vb_tok")||"null");if(t&&t.exp>Date.now()+60000)return t.v}catch(e){}return null}
+let TOKEN=tokRead();
+function authUrl(popup){const keep=new URLSearchParams(location.search);keep.delete("popup");if(popup)keep.set("popup","1");const q=keep.toString();
+ const ru=location.origin+location.pathname+(q?"?"+q:"");return `https://login.${CFG.region}/oauth/authorize?client_id=${encodeURIComponent(CFG.clientId)}&response_type=token&redirect_uri=${encodeURIComponent(ru)}`}
+function needLogin(){if(MODE==="sim")return;$("login").style.display="grid";$("lgmsg").textContent=CFG.clientId?"":"Client OAuth non configuré : utilisez le mode Simulation."}
+$("lgbtn").onclick=()=>{if(!CFG.clientId)return;if(window.top!==window.self){window.open(authUrl(true),"vbauth","width=520,height=680")}else location.href=authUrl(false)};
+$("lgsim").onclick=()=>$("mSim").click();
+addEventListener("storage",e=>{if(e.key==="vb_tok"){TOKEN=tokRead();if(TOKEN&&MODE==="live"){$("login").style.display="none";boot()}}});
+const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)&&location.port!=="8798";if(LOCAL)TOKEN="local-proxy";
+async function api(path,method="GET",body){if(!TOKEN)throw{status:401};
+ const r=await fetch(LOCAL?path:`https://api.${CFG.region}${path}`,{method,headers:LOCAL?{"Content-Type":"application/json"}:{Authorization:"Bearer "+TOKEN,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+ if(r.status===401&&!LOCAL){TOKEN=null;try{localStorage.removeItem("vb_tok")}catch(e){};needLogin();throw{status:401}}
+ if(!r.ok)throw{status:r.status};return r.status===204?{}:r.json()}
+const soft=p=>p.catch(()=>null);
+/* ---------- journey model ---------- */
+const ENTRY=["Ligne principale","Ligne Monétique","Chat","E-mail","Appel sortant"];
+const WELC=["Opposition prioritaire","Client VIP prioritaire","Identification KYC","Self-service SVI","Assistant virtuel","Tri automatique","Accueil standard"];
+const TEAMS=["CEM Monétique","CRC SOCRE","E-TELIA"];
+const OUT=["Résolu","Résolu sans attente","Suivi planifié","Rappel programmé","Abandon"];
+const VIPS=["Platinum","Gold","Silver"];
+let RECS=[],TEAMNOW={},CAMP=null,WI=null,LASTSUM={},MODE="live",ERR=false;
+const NAMES={},CODES={},QID={},QNAME={},ATTR={},ATTR_T={};
+function attrsOf(c){const a={};(c.participants||[]).forEach(p=>Object.assign(a,p.attributes||{}));return a}
+async function nameOf(id){if(!id)return"";if(NAMES[id]!==undefined)return NAMES[id];NAMES[id]="";const u=await soft(api("/api/v2/users/"+id));NAMES[id]=u&&u.name?u.name:"";return NAMES[id]}
+async function codeOf(id){if(!id)return"";if(CODES[id]!==undefined)return CODES[id];CODES[id]="";const u=await soft(api("/api/v2/routing/wrapupcodes/"+id));CODES[id]=u&&u.name?u.name:"";return CODES[id]}
+function toRec(c){const a=attrsOf(c);const sess=[];(c.participants||[]).forEach(p=>(p.sessions||[]).forEach(s=>sess.push(Object.assign({purpose:p.purpose,userId:p.userId},s))));
+ const cust=sess.find(s=>s.purpose==="customer"||s.purpose==="external")||sess[0]||{};const media=(cust.mediaType||"").toLowerCase();
+ const outbound=c.originatingDirection==="outbound";
+ let qSeg=null,team="";sess.forEach(s=>(s.segments||[]).forEach(g=>{if(g.queueId&&QNAME[g.queueId]&&!qSeg){qSeg=g;team=QNAME[g.queueId]}}));
+ const flowNames=sess.filter(s=>s.flow).map(s=>s.flow.flowName||"");
+ const touches=team||flowNames.some(f=>CFG.flows.includes(f))||Object.keys(a).some(k=>k.indexOf("VB_")===0);
+ if(!touches)return null;
+ if(!c.conversationEnd&&!team&&Date.now()-Date.parse(c.conversationStart)>3*3600e3)return null; /* abandoned chat sessions left open for hours are not part of today's live story */
+ const ag=sess.find(s=>s.purpose==="agent"&&(s.segments||[]).some(g=>g.segmentType==="interact"));
+ const motif=a.VB_Motif||"",seg=a.VB_Segment||"",kyc=!!a.VB_KYC,ligne=a.VB_Ligne||"";
+ const entry=outbound?"Appel sortant":media==="message"?"Chat":media==="email"?"E-mail":(/Mon/.test(ligne)?"Ligne Monétique":"Ligne principale");
+ const welc=/Carte perdue|opposition/i.test(motif)?"Opposition prioritaire":VIPS.includes(seg)?"Client VIP prioritaire":kyc?"Identification KYC":/automatis/i.test(motif)?"Self-service SVI":
+   media==="message"?"Assistant virtuel":media==="email"?"Tri automatique":"Accueil standard";
+ const t0=Date.parse(c.conversationStart);let wait=null;
+ if(qSeg&&ag){const ai=(ag.segments||[]).find(g=>g.segmentType==="alert"||g.segmentType==="interact");if(ai)wait=Math.max(0,(Date.parse(ai.segmentStart)-Date.parse(qSeg.segmentStart))/1000|0)}
+ let wrapId=null;sess.forEach(s=>(s.segments||[]).forEach(g=>{if(g.wrapUpCode)wrapId=g.wrapUpCode}));
+ const ended=!!c.conversationEnd;let out=null;
+ if(!team&&!ag)out=ended?(a.VB_Rappel?"Rappel programmé":"Résolu sans attente"):null;
+ else if(team&&!ag&&ended)out=a.VB_Rappel?"Rappel programmé":"Abandon";
+ else if(ag)out=ended?"Résolu":null;
+ return {id:c.conversationId,t:t0,end:ended?Date.parse(c.conversationEnd):null,entry,welc,team,out,seg,motif,kyc,wait,media,agentId:ag&&ag.userId,wrapId,a}}
+async function refineOut(r){if(r.wrapId){r.wrap=await codeOf(r.wrapId);if(r.out==="Résolu"&&/RDV|Rappel|reporté|KYC/i.test(r.wrap))r.out="Suivi planifié"}}
+/* ---------- live data ---------- */
+async function loadIds(){for(const n of CFG.queues){const r=await soft(api("/api/v2/routing/queues?name="+encodeURIComponent(n)));const q=r&&(r.entities||[]).find(x=>x.name===n);if(q){QID[n]=q.id;QNAME[q.id]=n}}
+ const r=await soft(api("/api/v2/outbound/campaigns?name="+encodeURIComponent(CFG.campaign)));CAMP=r&&(r.entities||[]).find(x=>x.name===CFG.campaign)||null}
+function dayIv(){const d=new Date();return new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())).toISOString()+"/"+new Date(Date.now()+60000).toISOString()}
+async function pullConvs(){const body={interval:dayIv(),order:"desc",orderBy:"conversationStart",paging:{pageSize:100,pageNumber:1}};const ids=Object.values(QID);
+ const [byQ,all]=await Promise.all([ids.length?soft(api("/api/v2/analytics/conversations/details/query","POST",Object.assign({},body,{segmentFilters:[{type:"or",predicates:ids.map(i=>({dimension:"queueId",value:i}))}]}))):null,
+   soft(api("/api/v2/analytics/conversations/details/query","POST",body))]);
+ if(!byQ&&!all)throw{status:0};
+ const m={};[byQ,all].forEach(x=>((x&&x.conversations)||[]).forEach(c=>m[c.conversationId]=c));
+ /* analytics does not return IVR participant data: read it from the conversation itself (cached per conversation) */
+ const list=Object.values(m).sort((a,b)=>Date.parse(b.conversationStart)-Date.parse(a.conversationStart)).slice(0,40);
+ await Promise.all(list.map(async c=>{let at=ATTR[c.conversationId];
+  if(at===undefined||(!c.conversationEnd&&Date.now()-(ATTR_T[c.conversationId]||0)>20000)){const cv=await soft(api("/api/v2/conversations/"+c.conversationId));at={};
+   ((cv&&cv.participants)||[]).forEach(p=>Object.assign(at,p.attributes||{}));ATTR[c.conversationId]=at;ATTR_T[c.conversationId]=Date.now()}
+  if(at&&Object.keys(at).length){c.participants=c.participants||[];c.participants.push({purpose:"_data",attributes:at,sessions:[]})}}));
+ const recs=Object.values(m).map(toRec).filter(Boolean).sort((a,b)=>b.t-a.t);await Promise.all(recs.slice(0,40).map(refineOut));return recs}
+async function pullTeams(){const ids=Object.values(QID);if(!ids.length)return;const qf={type:"or",predicates:ids.map(i=>({dimension:"queueId",value:i}))};
+ const [ob,ag]=await Promise.all([soft(api("/api/v2/analytics/queues/observations/query","POST",{filter:qf,metrics:["oWaiting","oInteracting","oOnQueueUsers"]})),
+  soft(api("/api/v2/analytics/conversations/aggregates/query","POST",{interval:dayIv(),groupBy:["queueId"],filter:qf,metrics:["nOffered","tAnswered","tAbandon","tAcd","oServiceLevel"]}))]);
+ const T={};CFG.queues.forEach(n=>T[n]={wait:0,inter:0,on:0,off:0,ans:0,ab:0,acd:0,acdN:0,sl:null});
+ ((ob&&ob.results)||[]).forEach(r=>{const n=QNAME[r.group.queueId];if(!n)return;(r.data||[]).forEach(d=>{const v=(d.stats&&d.stats.count)||0;
+  if(d.metric==="oWaiting")T[n].wait+=v;if(d.metric==="oInteracting")T[n].inter+=v;if(d.metric==="oOnQueueUsers"&&["IDLE","INTERACTING","COMMUNICATING"].includes(d.qualifier))T[n].on+=v})});
+ ((ag&&ag.results)||[]).forEach(r=>{const n=QNAME[r.group.queueId];if(!n)return;(r.data||[]).forEach(iv=>(iv.metrics||[]).forEach(m=>{const s=m.stats||{};
+  if(m.metric==="nOffered")T[n].off+=s.count||0;if(m.metric==="tAnswered")T[n].ans+=s.count||0;if(m.metric==="tAbandon")T[n].ab+=s.count||0;if(m.metric==="tAcd"){T[n].acd+=s.sum||0;T[n].acdN+=s.count||0}
+  if(m.metric==="oServiceLevel"&&s.ratio!=null)T[n].sl=Math.round(s.ratio*100)}))});
+ TEAMNOW=T}
+async function pullFollow(){if(MODE!=="live")return;if(CAMP){const p=await soft(api(`/api/v2/outbound/campaigns/${CAMP.id}/progress`));if(p)CAMP.p=p}
+ const w=await soft(api("/api/v2/taskmanagement/workitems/query","POST",{filters:[{name:"workbinId",type:"String",operator:"EQ",values:[CFG.workbin]}],pageSize:100}));
+ if(w){const e=w.entities||[];const today=new Date().toISOString().substr(0,10);WI={open:e.filter(x=>x.statusCategory!=="Closed").length,done:e.filter(x=>x.statusCategory==="Closed"&&String(x.dateClosed||x.dateModified||"").indexOf(today)===0).length}}}
+async function summaryOf(id){if(LASTSUM[id]!==undefined)return LASTSUM[id];LASTSUM[id]=null;const s=await soft(api(`/api/v2/conversations/${id}/summaries`));
+ const t=s&&(s.summary||(s.entities||[])[0]||null);LASTSUM[id]=t?(t.text||t.summary||null):null;return LASTSUM[id]}
+let busy=false,lastTop=null;async function liveTick(){if(MODE!=="live"||!TOKEN||busy)return;busy=true;
+ try{const [r]=await Promise.all([pullConvs(),pullTeams()]);const fresh=r[0]&&r[0].id!==lastTop&&lastTop!==null?r[0]:null;lastTop=r[0]?r[0].id:"";RECS=r;ERR=false;render(fresh)}catch(e){ERR=true;render()}busy=false}
+async function subscribe(){try{const ch=await api("/api/v2/notifications/channels","POST",{});const ws=new WebSocket(ch.connectUri);
+ ws.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.topicName&&m.topicName.indexOf("conversations")>0)setTimeout(liveTick,2500)}catch(x){}};
+ await api(`/api/v2/notifications/channels/${ch.id}/subscriptions`,"PUT",Object.values(QID).map(i=>({id:`v2.routing.queues.${i}.conversations`})))}catch(e){}}
+/* ---------- simulation (always labelled "données fictives") ---------- */
+const SN=["Ouédraogo","Sawadogo","Kaboré","Compaoré","Traoré","Zongo","Sanou","Ilboudo","Ouattara","Diallo","Somé","Nikiéma"];
+let SIM=[],simT=null;const rnd=a=>a[Math.random()*a.length|0];
+function simRec(t){const r=Math.random();const entry=r<.45?"Ligne principale":r<.62?"Ligne Monétique":r<.82?"Chat":r<.94?"E-mail":"Appel sortant";
+ let welc,team;const vip=Math.random()<.12;
+ if(entry==="Ligne Monétique"){welc=Math.random()<.55?"Opposition prioritaire":(vip?"Client VIP prioritaire":"Accueil standard");team="CEM Monétique"}
+ else if(entry==="Chat"){welc="Assistant virtuel";team=Math.random()<.55?"":(Math.random()<.2?"CEM Monétique":"CRC SOCRE")}
+ else if(entry==="E-mail"){welc="Tri automatique";team=rnd(["CEM Monétique","CEM Monétique","CRC SOCRE","E-TELIA"])}
+ else if(entry==="Appel sortant"){welc="Accueil standard";team="E-TELIA"}
+ else{const x=Math.random();welc=x<.12?"Self-service SVI":x<.22?"Identification KYC":vip?"Client VIP prioritaire":x<.3?"Opposition prioritaire":"Accueil standard";
+  team=welc==="Self-service SVI"?"":welc==="Opposition prioritaire"?"CEM Monétique":(Math.random()<.18?"E-TELIA":"CRC SOCRE")}
+ const out=!team?(Math.random()<.85?"Résolu sans attente":"Rappel programmé"):(Math.random()<.05?"Abandon":Math.random()<.22?"Suivi planifié":Math.random()<.06?"Rappel programmé":"Résolu");
+ const wait=team?((welc==="Opposition prioritaire"||welc==="Client VIP prioritaire")?5+Math.random()*20|0:15+Math.random()*80|0):null;
+ return {id:"sim"+t+Math.random(),t,end:t+120000,entry,welc,team,out,seg:vip?rnd(VIPS):"Standard",kyc:welc==="Identification KYC",wait,
+  motif:welc==="Opposition prioritaire"?"Carte perdue ou volée (opposition)":entry==="Chat"?"Conversation chat":team==="E-TELIA"?"Rendez-vous":"Comptes et opérations",
+  wrap:out==="Suivi planifié"?rnd(["VB - Demande de RDV","VB - Mise à jour KYC"]):"",nom:rnd(["Madame","Monsieur"])+" "+rnd(SN),agent:rnd(["Awa K.","Moussa T.","Fatimata S.","Ibrahim O.","Rasmata Z."]),sim:true,a:{}}}
+function startSim(){stopSim();SIM=[];const now=Date.now();for(let i=0;i<64;i++)SIM.push(simRec(now-(64-i)*7*60000));SIM.sort((a,b)=>b.t-a.t);
+ TEAMNOW={"CRC SOCRE":{wait:3,inter:4,on:6,off:118,ans:112,ab:4,acd:112*34,acdN:112,sl:88},"CEM Monétique":{wait:1,inter:2,on:2,off:41,ans:40,ab:1,acd:40*12,acdN:40,sl:96},"E-TELIA":{wait:0,inter:3,on:4,off:22,ans:21,ab:1,acd:21*28,acdN:21,sl:91}};
+ CAMP={p:{percentage:46}};WI={open:7,done:12};render();
+ simT=setInterval(()=>{const r=simRec(Date.now());SIM.unshift(r);SIM=SIM.slice(0,90);const T=TEAMNOW[r.team];if(T){T.off++;if(r.out!=="Abandon")T.ans++;else T.ab++;T.wait=Math.max(0,Math.min(6,T.wait+(Math.random()<.5?1:-1)))}
+  if(Math.random()<.3)CAMP.p.percentage=Math.min(100,CAMP.p.percentage+1);render(r)},4200)}
+function stopSim(){if(simT)clearInterval(simT);simT=null}
+/* ---------- render ---------- */
+const shown={};function setNum(id,v,f=x=>x){const el=$(id);if(!el)return;if(v==null||Number.isNaN(v)){el.textContent="–";shown[id]=null;return}
+ const from=shown[id];shown[id]=v;if(typeof v!=="number"||from==null||from===v){el.textContent=f(v);return}
+ el.classList.add("flash");const t0=performance.now();(function st(t){const p=Math.min(1,(t-t0)/900),x=from+(v-from)*(1-Math.pow(1-p,3));el.textContent=f(Math.round(x*10)/10===Math.round(x)?Math.round(x):Math.round(x));if(p<1)requestAnimationFrame(st);else{el.textContent=f(v);setTimeout(()=>el.classList.remove("flash"),700)}})(t0)}
+const secs=v=>v<90?v+" s":Math.floor(v/60)+" min "+String(v%60).padStart(2,"0");
+const hm=t=>new Date(t).toISOString().substr(11,5);
+function render(fresh){const R=MODE==="sim"?SIM:RECS;
+ $("dot").className="dot"+(MODE==="sim"?" sim":ERR?" off":"");$("livet").textContent=MODE==="sim"?"SIMULATION · DONNÉES FICTIVES":ERR?"RECONNEXION…":"EN DIRECT";
+ $("upd").textContent=MODE==="sim"?"démonstration":"mis à jour "+new Date().toISOString().substr(11,8);
+ $("sksrc").textContent=MODE==="sim"?"simulation · données fictives":"aujourd’hui · analytics Genesys";
+ const T=Object.values(TEAMNOW);const off=T.reduce((a,b)=>a+b.off,0),ans=T.reduce((a,b)=>a+b.ans,0),ab=T.reduce((a,b)=>a+b.ab,0);
+ const waits=R.filter(r=>r.wait!=null).map(r=>r.wait);
+ setNum("k_tot",R.length);$("k_tot_e").textContent=R.length?`${R.filter(r=>/Ligne|sortant/.test(r.entry)).length} appels · ${R.filter(r=>r.entry==="Chat").length} chats · ${R.filter(r=>r.entry==="E-mail").length} e-mails`:"";
+ setNum("k_ans",off?Math.round(ans/off*100):null,x=>x+" %");$("k_ans_e").textContent=off?`${ans} / ${off}`:"";
+ setNum("k_wait",waits.length?Math.round(waits.reduce((a,b)=>a+b,0)/waits.length):null,secs);
+ setNum("k_ab",off?Math.round(ab/off*100):null,x=>x+" %");$("k_ab_e").textContent=off?ab+" contacts":"";
+ setNum("k_self",R.length?Math.round(R.filter(r=>r.out==="Résolu sans attente").length/R.length*100):null,x=>x+" %");
+ setNum("k_vip",R.filter(r=>VIPS.includes(r.seg)&&r.team).length);setNum("k_kyc",R.filter(r=>r.kyc).length);
+ drawSankey(R,fresh);renderTeams();renderLast(R);renderFeed(R);
+ const pc=CAMP&&CAMP.p?Math.round(CAMP.p.percentage||0):null;$("c_pct").textContent=pc==null?"–":(CAMP.campaignStatus==="off"&&!pc?"Prête · 8 RDV":pc+" %");$("c_bar").style.width=(pc||0)+"%";
+ $("w_open").textContent=WI?WI.open:"–";$("w_done").textContent=WI?WI.done:"–"}
+function renderTeams(){const C=2*Math.PI*40;$("teams").innerHTML=CFG.queues.map(n=>{const t=TEAMNOW[n]||{};const sl=t.sl==null?null:t.sl;
+ const asa=t.acdN?Math.round(t.acd/t.acdN/(MODE==="sim"?1:1000)):null;
+ return `<div class="tm ${t.wait>2?"hot":""}"><div><h3>${esc(n)}</h3><small>${esc(CFG.teamLbl[n])}</small>
+ <div class="row"><div class="wait">En attente<b>${t.wait??"–"}</b></div><div>En ligne<b>${t.inter??"–"}</b></div><div>Prêts<b>${t.on??"–"}</b></div><div>Attente moy.<b>${asa==null?"–":secs(asa)}</b></div></div></div>
+ <div class="ring"><svg width="96" height="96"><circle cx="48" cy="48" r="40" stroke="#2E2023" stroke-width="9" fill="none"/><circle cx="48" cy="48" r="40" stroke="url(#gr)" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="${(sl||0)/100*C} ${C}" opacity="${sl?1:0}" style="transition:stroke-dasharray 1s"/>
+ <defs><linearGradient id="gr"><stop offset="0" stop-color="#B02235"/><stop offset="1" stop-color="#FC003B"/></linearGradient></defs></svg><div><span>${sl==null?"–":sl+"%"}<small>NIV. SERVICE</small></span></div></div></div>`}).join("")}
+let PATHS=[];const COMETS=[];const NS="http://www.w3.org/2000/svg";
+function drawSankey(R,fresh){const svg=$("sk");const W=svg.clientWidth||1200,H0=svg.clientHeight||480,TOP=30,H=H0-TOP;const nodeW=12;const colX=[0,W*.33,W*.64,W-nodeW];
+ const cols=[ENTRY,WELC,TEAMS,OUT];const cnt=cols.map(c=>Object.fromEntries(c.map(k=>[k,0])));const L={};
+ const add=(a,b,ca,cb)=>{const k=ca+"|"+a+"|"+cb+"|"+b;L[k]=(L[k]||0)+1};
+ R.forEach(r=>{cnt[0][r.entry]++;cnt[1][r.welc]++;add(r.entry,r.welc,0,1);if(r.team){cnt[2][r.team]++;add(r.welc,r.team,1,2);if(r.out){cnt[3][r.out]++;add(r.team,r.out,2,3)}}else if(r.out){cnt[3][r.out]++;add(r.welc,r.out,1,3)}});
+ const total=Math.max(1,R.length);
+ const pos=cols.map((c,ci)=>{const gap=10,minH=22;const free=Math.max(0,H-gap*(c.length-1)-10-minH*c.length);let y=5;const o={};c.forEach(k=>{const h=minH+(R.length?cnt[ci][k]/total*free:free/c.length);o[k]={y,h,u0:0,u1:0};y+=h+gap});const sh=(H-y)/2;Object.values(o).forEach(v=>v.y+=Math.max(0,sh)+TOP);return o});
+ let s=`<defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#FC003B" stop-opacity=".55"/><stop offset="1" stop-color="#B02235" stop-opacity=".32"/></linearGradient>
+ <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+ s+=["POINT D’ENTRÉE","ACCUEIL INTELLIGENT","ÉQUIPE","ISSUE"].map((h,i)=>`<text x="${i===3?colX[i]+nodeW:colX[i]}" y="12" class="ch" text-anchor="${i===3?"end":"start"}">${h}</text>`).join("");
+ PATHS=[];const cv=(x1,y1,x2,y2)=>{const mx=(x1+x2)/2;return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`};
+ Object.entries(L).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{const [ca,a,cb,b]=k.split("|");const A=pos[ca][a],B=pos[cb][b];
+  const w=Math.max(2.5,Math.min(A.h,B.h)*v/Math.max(cnt[ca][a],cnt[cb][b],1));const y1=A.y+A.u0+w/2;A.u0+=w;const y2=B.y+B.u1+w/2;B.u1+=w;
+  const d=cv(colX[ca]+nodeW,y1,colX[cb],y2);const ab=b==="Abandon";s+=`<path d="${d}" stroke="${ab?"#5a4a4f":"url(#lg)"}" stroke-width="${w}" fill="none"/>`;PATHS.push({d,v,ab})});
+ if(!R.length){[[0,"Ligne principale",1,"Accueil standard"],[0,"Ligne Monétique",1,"Opposition prioritaire"],[0,"Chat",1,"Assistant virtuel"],[0,"E-mail",1,"Tri automatique"],[0,"Appel sortant",1,"Accueil standard"],
+  [1,"Accueil standard",2,"CRC SOCRE"],[1,"Opposition prioritaire",2,"CEM Monétique"],[1,"Client VIP prioritaire",2,"CRC SOCRE"],[1,"Identification KYC",2,"CRC SOCRE"],[1,"Tri automatique",2,"CEM Monétique"],[1,"Assistant virtuel",3,"Résolu sans attente"],[1,"Self-service SVI",3,"Résolu sans attente"],
+  [2,"CRC SOCRE",3,"Résolu"],[2,"CEM Monétique",3,"Résolu"],[2,"E-TELIA",3,"Suivi planifié"],[2,"CRC SOCRE",3,"Rappel programmé"]].forEach(([ca,a,cb,b])=>{const A=pos[ca][a],B=pos[cb][b];
+  s+=`<path d="${cv(colX[ca]+nodeW,A.y+A.h/2,colX[cb],B.y+B.h/2)}" stroke="#3a2a2e" stroke-width="3" stroke-dasharray="4 7" fill="none"/>`})}
+ cols.forEach((c,ci)=>c.forEach(k=>{const p=pos[ci][k];const n=cnt[ci][k];const x=colX[ci];const right=ci===3;const hot=n>0;
+  s+=`<rect x="${x}" y="${p.y}" width="${nodeW}" height="${p.h}" rx="4" fill="${k==="Abandon"?"#7E6970":ci===2?"#FC003B":"#B02235"}" opacity="${hot?1:.35}" ${hot?'filter="url(#glow)"':""}/>`;
+  const tx=right?x-10:x+nodeW+10,an=right?"end":"start",ty=p.y+p.h/2;
+  s+=`<text x="${tx}" y="${ty-1}" text-anchor="${an}" class="nl" opacity="${hot?1:.45}">${esc(k)}</text><text x="${tx}" y="${ty+16}" text-anchor="${an}" class="nv">${n?n+" · "+Math.round(n/total*100)+" %":"–"}</text>`}));
+ s+=`<g id="parts"></g>`;svg.innerHTML=s;
+ if(fresh){const r=fresh;const seq=[[0,r.entry,1,r.welc]];if(r.team){seq.push([1,r.welc,2,r.team]);if(r.out)seq.push([2,r.team,3,r.out])}else if(r.out)seq.push([1,r.welc,3,r.out]);
+  COMETS.push({seq:seq.map(([ca,a,cb,b])=>{const A=pos[ca][a],B=pos[cb][b];return cv(colX[ca]+nodeW,A.y+A.h/2,colX[cb],B.y+B.h/2)}),t0:performance.now()})}}
+const TMP=document.createElementNS(NS,"path");
+function animate(t){try{animate1(t)}catch(e){}requestAnimationFrame(animate)}
+function animate1(t){const g=document.getElementById("parts");if(g){let h="";
+ PATHS.forEach((p,i)=>{if(p.ab)return;const n=Math.min(5,1+Math.round(p.v/3));TMP.setAttribute("d",p.d);const L=TMP.getTotalLength();
+  for(let j=0;j<n;j++){const f=((t/(5200+(i%5)*700))+j/n+i*.13)%1;const pt=TMP.getPointAtLength(f*L);h+=`<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="2.6" fill="#fff" opacity="${(.85*Math.sin(f*Math.PI)).toFixed(2)}"/>`}});
+ for(let k=COMETS.length-1;k>=0;k--){const cm=COMETS[k];const dt=(t-cm.t0)/1400;if(dt<0)continue;const sg=Math.floor(dt);if(sg>=cm.seq.length||!cm.seq[sg]){COMETS.splice(k,1);continue}
+  TMP.setAttribute("d",cm.seq[sg]);const pt=TMP.getPointAtLength((dt-sg)*TMP.getTotalLength());
+  h+=`<circle cx="${pt.x}" cy="${pt.y}" r="10" fill="#FC003B" filter="url(#glow)"/><circle cx="${pt.x}" cy="${pt.y}" r="4" fill="#fff"/>`}
+ g.innerHTML=h}}requestAnimationFrame(animate);
+let lastKey=null;async function renderLast(R){const r=R[0];if(!r){$("tl").innerHTML='<div class="none">Le prochain client apparaîtra ici, étape par étape.</div>';$("sum").innerHTML="";lastKey=null;return}
+ const key=r.id+"|"+(r.out||"")+"|"+(r.wrap||"");if(key===lastKey)return;lastKey=key;
+ const ev=[];const nm=r.sim?r.nom:((r.a.VB_Client||"").trim());
+ ev.push([r.t,(r.entry==="Appel sortant"?"Appel sortant E-TELIA":"Contact entrant · "+r.entry)+(nm?" · "+nm:""),r.entry==="Chat"||r.entry==="E-mail"?"b":"",""]);
+ const W={"Opposition prioritaire":"Carte perdue ou volée : priorité maximale","Client VIP prioritaire":`Client ${r.seg} reconnu : priorité appliquée`,"Identification KYC":"Numéro différent du dossier : alerte KYC","Self-service SVI":"Réponse automatique du SVI","Assistant virtuel":"L’assistant virtuel prend en charge","Tri automatique":"E-mail classé par sujet automatiquement"};
+ if(W[r.welc])ev.push([r.t+12000,W[r.welc],r.welc==="Identification KYC"?"y":"",r.welc]);else if(r.motif&&r.motif!=="—")ev.push([r.t+12000,"Motif : "+r.motif,"",""]);
+ if(r.team)ev.push([r.t+20000,"Dirigé vers "+r.team,"","routage"]);
+ if(r.team&&r.out!=="Abandon"&&(r.agentId||r.sim)){const an=r.sim?r.agent:await nameOf(r.agentId);ev.push([r.t+20000+(r.wait||0)*1000,(an||"Un conseiller")+" répond"+(r.wait!=null?" après "+secs(r.wait):""),"g","conseiller"])}
+ const O={"Résolu":"Demande résolue","Résolu sans attente":"Résolu sans attente","Suivi planifié":"Demande de suivi créée","Rappel programmé":"Rappel programmé, place conservée","Abandon":"Le client a raccroché avant réponse"};
+ if(r.out)ev.push([r.end||Date.now(),O[r.out]+(r.wrap?" · "+r.wrap:""),r.out==="Abandon"?"y":"g",r.out]);else ev.push([Date.now(),"En cours…","b","en direct"]);
+ $("lastsrc").textContent=r.end?"dernier client":"en cours";
+ $("tl").innerHTML=ev.map((e,i)=>`<div class="ev ${e[2]}" style="animation-delay:${i*.18}s"><span class="t">${hm(e[0])}</span>${esc(e[1])}${e[3]?`<i>${esc(e[3])}</i>`:""}</div>`).join("");
+ const sm=r.sim?(r.team&&r.out!=="Abandon"?`${r.motif} — pris en charge par ${r.agent}. Solution apportée et client informé des prochaines étapes.`:null):(r.agentId&&r.end?await summaryOf(r.id):null);
+ $("sum").innerHTML=sm?`<div class="sum"><b>RÉSUMÉ COPILOT</b>${esc(sm).slice(0,260)}</div>`:""}
+function renderFeed(R){const M=[];R.slice(0,60).forEach(r=>{const t=hm(r.t);
+  if(r.welc==="Opposition prioritaire"&&r.team&&r.wait!=null)M.push(["🔒","rgba(252,0,59,.18)",`Opposition carte prise en charge en ${secs(r.wait)}`,`${t} · CEM Monétique`]);
+  else if(VIPS.includes(r.seg)&&r.team&&r.wait!=null)M.push(["★","rgba(255,181,71,.16)",`Client ${r.seg} servi en ${secs(r.wait)}`,`${t} · ${r.team}`]);
+  else if(r.kyc)M.push(["⚠","rgba(255,181,71,.16)","Numéro différent détecté : mise à jour KYC proposée",`${t} · ${r.team||"SVI"}`]);
+  else if(r.out==="Résolu sans attente")M.push(["✦","rgba(124,167,255,.16)",`${r.entry==="Chat"?"Assistant virtuel":"SVI"} : demande résolue sans attente`,`${t} · ${r.entry}`]);
+  else if(r.out==="Rappel programmé")M.push(["↺","rgba(61,220,151,.14)","Rappel programmé, place conservée",`${t} · ${r.team||"SVI"}`]);
+  else if(r.out==="Suivi planifié")M.push(["✚","rgba(61,220,151,.14)","Demande de suivi créée"+(r.wrap?" · "+r.wrap:""),`${t} · ${r.team}`])});
+ $("feed").innerHTML=M.length?M.slice(0,4).map((m,i)=>`<div class="mo" style="animation-delay:${i*.08}s"><div class="ic" style="background:${m[1]}">${m[0]}</div><div><p>${esc(m[2])}</p><small>${esc(m[3])}</small></div></div>`).join(""):'<div class="none">Les moments forts de la journée s’afficheront ici.</div>'}
+let loops=[];async function boot(){loops.forEach(clearInterval);loops=[];if(MODE==="sim")return startSim();
+ if(!TOKEN)return needLogin();$("login").style.display="none";await loadIds();await liveTick();pullFollow().then(()=>render());subscribe();
+ loops.push(setInterval(liveTick,12000),setInterval(()=>pullFollow().then(()=>render()),30000))}
+$("mLive").onclick=()=>{if(MODE==="live")return;MODE="live";$("mLive").className="on";$("mSim").className="";stopSim();RECS=[];TEAMNOW={};CAMP=null;WI=null;lastTop=null;render();boot()};
+$("mSim").onclick=()=>{if(MODE==="sim")return;MODE="sim";$("mSim").className="on";$("mLive").className="";$("login").style.display="none";loops.forEach(clearInterval);startSim()};
+if(qp.get("mode")==="sim"){MODE="sim";$("mSim").className="on";$("mLive").className=""}
+render();boot();
+</script></body></html>
